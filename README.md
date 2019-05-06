@@ -18,3 +18,9 @@ forum.
 
 https://docs.google.com/spreadsheets/d/1A0Cec7Kuvy8ziK68m0jcufaFswDX7olVLkeqIYUwSCI/edit?usp=sharing
 
+Modules needed:
+requests
+bs4
+gspread
+oauth2client
+gspread_formatting
