@@ -7,6 +7,8 @@ Created on Sat Apr 27 21:30:51 2019
 
 import Config
 
+from time import gmtime, strftime
+
 import requests #This is the lib that handled everything web based for python
 from bs4 import BeautifulSoup #Literally just used to make things look nice. The find functions are decent too
 
@@ -217,11 +219,11 @@ def main():
               "Argus.J",
     ]
          
-    InitialTicketCells = ["AO","CLERK", "TURN TIME", "THREAD LINK", "", "AOs", 'TICKETS', "AVG TURN TIME", "","CLERK","TOTAL TICKETS","AVG TURN TIME"] #Header of google sheet
+    InitialTicketCells = ["AO","CLERK", "TURN TIME", "THREAD LINK", "", "AOs", 'TICKETS', "AVG TURN TIME", "","CLERK","TOTAL TICKETS","AVG TURN TIME", "", "UPDATED AT"] #Header of google sheet
     
     Sheet = SheetGet()
     
-    cell_listInitial = Sheet.range("A1:L1") #setup sheet range
+    cell_listInitial = Sheet.range("A1:N1") #setup sheet range
        
     InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerks) #function call
     
@@ -244,6 +246,8 @@ def main():
         
     gspread_formatting.format_cell_range(Sheet,'A2:R{}'.format(len(Result)), gspread_formatting.cellFormat(horizontalAlignment='CENTER'))
     gspread_formatting.format_cell_ranges(Sheet, formatlisting) #these two lines format the sheet
+    
+    Sheet.update_cell(2,14,strftime("%Y-%m-%d %H:%M:%S", gmtime()))
     
     if Config.CSVOutput == 1 or Config.CSVOutput == 'yes': #if we want csv writer on
         CSVWriter(CurrentAOs, Clerks, output)
