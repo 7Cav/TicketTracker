@@ -109,8 +109,8 @@ def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerk
     for AO in range(len(CurrentAOs)): #Loop for each AO with formula to count how many tickets are part of it
         
         FormulaList.append('{}'.format(CurrentAOs[AO]))
-        FormulaList.append("=COUNTIF(A:A,F{})".format(AO+3))
-        FormulaList.append("=AVERAGEIF(A:A,F{},C:C)".format(AO+3))
+        FormulaList.append('=COUNTIF(A:A,"*" &F{} & "*")'.format(AO+3))
+        FormulaList.append('=AVERAGEIF(A:A,"*" &F{} & "*",C:C)'.format(AO+3))
            
     x = 0  
     for cells in cell_listTicketTrackerFormuler:
@@ -127,8 +127,8 @@ def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerk
     for Clerk in range(len(Clerks)):
         
         ClerkList.append('{}'.format(Clerks[Clerk]))
-        ClerkList.append('=COUNTIF(B:B,J{})'.format(Clerk+2))
-        ClerkList.append('=AVERAGEIF(B:B,J{},C:C)'.format(Clerk+2))
+        ClerkList.append('=COUNTIF(B:B,"*" &J{} & "*")'.format(Clerk+2))
+        ClerkList.append('=AVERAGEIF(B:B,"*" &J{} & "*",C:C)'.format(Clerk+2))
 
     
     x = 0  
