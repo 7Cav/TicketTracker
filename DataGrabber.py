@@ -52,12 +52,15 @@ def DataScrape():
     
     loopflag = 0
     pagenumber = 1
-    output = []
+    output = []  
+    Clerks = []
+    AOs = []
     
     with requests.Session() as s:
         LoginUrl = 'https://7cav.us/login/login' #Actual login link
         TicketsUrl = 'https://7cav.us/forums/resolved.425/'#Resolved Ticket URL
-        
+        ClerksURL = 'https://7cav.us/threads/current-s6-game-clerks.45084/'#Current Clerk post
+
         #Login block below
         r = s.get(LoginUrl, headers=BrowserHeaders) #gets to the webpage with defined header to make it think we are in a browser not a script
         soup = BeautifulSoup(r.content, 'html.parser') #Beautiful soup converts raw text data into html looking format
@@ -67,7 +70,25 @@ def DataScrape():
         Pages = s.get(TicketsUrl, headers=BrowserHeaders) 
         PagesSoup = BeautifulSoup(Pages.content, 'html.parser') 
         PageNumbers = PagesSoup.find('div', attrs={'class':'PageNav'})['data-last']#Last page number is stored in data-last
-
+        
+        ClerksPage = s.get(ClerksURL, headers=BrowserHeaders) 
+        ClerksSoup = BeautifulSoup(ClerksPage.content, 'html.parser') 
+        Text = ClerksSoup.find('div', attrs={'class':'messageContent'}).text#Last page number is stored in data-last
+    
+    Text = Text.replace(' ','')  
+    Text = Text.replace('\n\n\n','')  
+    Text = Text.replace('\n\n',' ')
+    Text = Text.replace('\n',' ')
+    Text = Text.replace('\xa0','')
+        
+    List = Text.split(' ')
+    
+    for x in range(len(List)-1):
+        if '-' in List[x] and List[x][1:] not in Clerks:
+            Clerks.append(List[x][1:]) #filter out '-'
+        elif '-' not in List[x]:
+            AOs.append(List[x])
+            
         #Ticket data grabbing below
         while loopflag != int(PageNumbers):
             ticketurl = TicketsUrl + 'page-' + str(pagenumber)#Creates the url for each page of tickets url takes form of:https://7cav.us/forums/resolved.425/page-[x]
@@ -88,7 +109,7 @@ def DataScrape():
             loopflag += 1
             pagenumber += 1    
 
-    return output
+    return output,Clerks,AOs
 
 def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerks):
     x = 0
@@ -198,38 +219,16 @@ def CSVWriter(CurrentAOs, Clerks, output):
 
 def main():
 
-    CurrentAOs = ["AdminAccess",
-                  "Arma3",
-                  "DCS",
-                  "Discord",
-                  "Forums",
-                  "Other",
-                  "PostScriptum",
-                  "Squad"
-    ]
-    
-    Clerks = ["Jarvis.A",
-              "Ratcliff.M",
-              "Sweetwater.I",
-              "Czar.J",
-              "Blackburn.J",
-              "Raynor.D",
-              "Manus.E",
-              "Ticknor.D",
-              "Magic",
-              "Argus.J",
-    ]
-         
     InitialTicketCells = ["AO","CLERK", "TURN TIME", "THREAD LINK", "", "AOs", 'TICKETS', "AVG TURN TIME", "","CLERK","TOTAL TICKETS","AVG TURN TIME", "", "UPDATED AT"] #Header of google sheet
     
     Sheet = SheetGet()
     
     cell_listInitial = Sheet.range("A1:N1") #setup sheet range
-       
+     
+    output, Clerks, CurrentAOs = DataScrape() #grab all data we are interested in
+    
     InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerks) #function call
-    
-    output = DataScrape() #grab all data we are interested in
-    
+  
     fmtheader = gspread_formatting.cellFormat(
         backgroundColor=gspread_formatting.color(0, 0, 0),
         textFormat=gspread_formatting.textFormat(bold=True, foregroundColor=gspread_formatting.color(1, 0.84, 0)),
