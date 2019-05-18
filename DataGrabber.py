@@ -24,7 +24,6 @@ def SheetGet():
     scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
     
     currentdir = os.path.dirname(os.path.realpath(__file__))
-    print(currentdir + "\Auth.json")
     
     creds = ServiceAccountCredentials.from_json_keyfile_name(currentdir + "\Auth.json", scope)
     
