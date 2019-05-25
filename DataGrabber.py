@@ -69,7 +69,7 @@ def DataScrape():
         Pages = s.get(TicketsUrl, headers=BrowserHeaders) 
         PagesSoup = BeautifulSoup(Pages.content, 'html.parser') 
         PageNumbers = PagesSoup.find('div', attrs={'class':'PageNav'})['data-last']#Last page number is stored in data-last
-        
+                
         ClerksPage = s.get(ClerksURL, headers=BrowserHeaders) 
         ClerksSoup = BeautifulSoup(ClerksPage.content, 'html.parser') 
         Text = ClerksSoup.find('div', attrs={'class':'messageContent'}).text#Last page number is stored in data-last
@@ -90,11 +90,17 @@ def DataScrape():
             
         #Ticket data grabbing below
         while loopflag != int(PageNumbers):
+            Submitee = []
             ticketurl = TicketsUrl + 'page-' + str(pagenumber)#Creates the url for each page of tickets url takes form of:https://7cav.us/forums/resolved.425/page-[x]
             tickets = s.get(ticketurl,headers=BrowserHeaders)
             Ticketsoup = BeautifulSoup(tickets.content, 'html.parser')
             #Grabs all the data in the input class which holds titles of all threads on page
             #Loops through for however many threads are on page
+            
+            for Submitter in Ticketsoup.find_all('a', attrs={'title':'Thread starter'}):
+                Submitee.append(Submitter.text)
+                
+            x = 0
             for titles in Ticketsoup.find_all('input', attrs={'name': 'threads[]'}):
                 RawTickets = (titles.get('title')[29:])#Grabs individual titles and saves it to a variable
                 RawTickets = RawTickets.replace('|',',') #Adds commas where | is in thread titles, useful for csv files
@@ -103,8 +109,10 @@ def DataScrape():
                 RawTickets = RawTickets.replace('hrs', '')
                 RawTickets = RawTickets.replace('hr', '')
                 ComaTickets = RawTickets.replace(' ', '')
-                output.append(ComaTickets + ',' + 'https://7cav.us/threads/' + titles.get('value')) #Finally append title to end out all title list
-        
+                output.append(ComaTickets + ',' + 'https://7cav.us/threads/' + titles.get('value') + ',' + Submitee[x])
+                #Finally append title to end out all title list
+                x+=1
+                
             loopflag += 1
             pagenumber += 1    
 
@@ -118,7 +126,7 @@ def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerk
         
     Sheet.update_cells(cell_listInitial, value_input_option='USER_ENTERED')
     
-    cell_listTicketTrackerFormuler = Sheet.range("F2:H{}".format(len(CurrentAOs) + 2))
+    cell_listTicketTrackerFormuler = Sheet.range("G2:I{}".format(len(CurrentAOs) + 2))
     
     FormulaList = []
     
@@ -129,8 +137,8 @@ def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerk
     for AO in range(len(CurrentAOs)): #Loop for each AO with formula to count how many tickets are part of it
         
         FormulaList.append('{}'.format(CurrentAOs[AO]))
-        FormulaList.append('=COUNTIF(A:A,"*" &F{} & "*")'.format(AO+3))
-        FormulaList.append('=AVERAGEIF(A:A,"*" &F{} & "*",C:C)'.format(AO+3))
+        FormulaList.append('=COUNTIF(A:A,"*" &G{} & "*")'.format(AO+3))
+        FormulaList.append('=AVERAGEIF(A:A,"*" &G{} & "*",C:C)'.format(AO+3))
            
     x = 0  
     for cells in cell_listTicketTrackerFormuler:
@@ -142,13 +150,13 @@ def InitialFormat(cell_listInitial, InitialTicketCells, Sheet, CurrentAOs, Clerk
     
     ClerkList = []
     
-    cell_listClerkTrackerFormuler = Sheet.range("J2:L{}".format(len(Clerks) + 1))
+    cell_listClerkTrackerFormuler = Sheet.range("K2:M{}".format(len(Clerks) + 1))
     
     for Clerk in range(len(Clerks)):
         
         ClerkList.append('{}'.format(Clerks[Clerk]))
-        ClerkList.append('=COUNTIF(B:B,"*" &J{} & "*")'.format(Clerk+2))
-        ClerkList.append('=AVERAGEIF(B:B,"*" &J{} & "*",C:C)'.format(Clerk+2))
+        ClerkList.append('=COUNTIF(B:B,"*" &K{} & "*")'.format(Clerk+2))
+        ClerkList.append('=AVERAGEIF(B:B,"*" &K{} & "*",C:C)'.format(Clerk+2))
 
     
     x = 0  
@@ -163,12 +171,10 @@ def cellWrite(output, Sheet, Color, fmtOK, formatlisting):
     x = 0
     y = 0
     Result = []
-   
+    
     for a in range(len(output)):
         Result.append([a.strip() for a in output[a].split(',')]) #Turn singular list in a list with 3 elements on each line
-          
-    cell_listA = Sheet.range('A2:D{}'.format(len(Result) + 1)) #Cell_list becomes the size of total tickets time 3. This is the amount of cells we will be taking up
-    
+    cell_listA = Sheet.range('A2:E{}'.format(len(Result)+1)) #Cell_list becomes the size of total tickets time 3. This is the amount of cells we will be taking up
     for cellA in cell_listA:
         cellA.value = Result[x][y] #Fill in values of each individual cell to use back in the cell list
         if Result[x][2] != 'NF':
@@ -184,7 +190,7 @@ def cellWrite(output, Sheet, Color, fmtOK, formatlisting):
         else:
             formatlisting.append(('C{}'.format(x+2),fmtOK))
         y += 1
-        if y == 4: #This is to avoid index out of bounds
+        if y == 5: #This is to avoid index out of bounds
             y = 0
             x += 1
      
@@ -218,11 +224,11 @@ def CSVWriter(CurrentAOs, Clerks, output):
 
 def main():
 
-    InitialTicketCells = ["AO","CLERK", "TURN TIME", "THREAD LINK", "", "AOs", 'TICKETS', "AVG TURN TIME", "","CLERK","TOTAL TICKETS","AVG TURN TIME", "", "UPDATED AT"] #Header of google sheet
+    InitialTicketCells = ["AO","CLERK", "TURN TIME", "THREAD LINK", "Submitter", "","AOs", 'TICKETS', "AVG TURN TIME", "","CLERK","TOTAL TICKETS","AVG TURN TIME", "", "UPDATED AT"] #Header of google sheet
     
     Sheet = SheetGet()
     
-    cell_listInitial = Sheet.range("A1:N1") #setup sheet range
+    cell_listInitial = Sheet.range("A1:O1") #setup sheet range
      
     output, Clerks, CurrentAOs = DataScrape() #grab all data we are interested in
     
@@ -243,10 +249,10 @@ def main():
     
     Result = cellWrite(output, Sheet, Color, fmtOK, formatlisting) #this updates our sheet
         
-    gspread_formatting.format_cell_range(Sheet,'A2:R{}'.format(len(Result)), gspread_formatting.cellFormat(horizontalAlignment='CENTER'))
+    gspread_formatting.format_cell_range(Sheet,'A2:R{}'.format(len(Result)+1), gspread_formatting.cellFormat(horizontalAlignment='CENTER'))
     gspread_formatting.format_cell_ranges(Sheet, formatlisting) #these two lines format the sheet
     
-    Sheet.update_cell(2,14,strftime("%Y-%m-%d %H:%M:%S", gmtime()))
+    Sheet.update_cell(2,15,strftime("%Y-%m-%d %H:%M:%S", gmtime()))
     
     if Config.CSVOutput == 1 or Config.CSVOutput == 'yes': #if we want csv writer on
         CSVWriter(CurrentAOs, Clerks, output)
