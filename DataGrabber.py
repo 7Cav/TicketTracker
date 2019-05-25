@@ -31,7 +31,7 @@ def SheetGet():
     
     sheet = client.open("TicketTracker")
     
-    WorkSheet = sheet.worksheet("Sheet2")
+    WorkSheet = sheet.worksheet("All Data")
     
     return WorkSheet
 
