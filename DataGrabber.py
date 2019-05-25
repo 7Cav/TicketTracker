@@ -25,7 +25,7 @@ def SheetGet():
     
     currentdir = os.path.dirname(os.path.realpath(__file__))
     
-    creds = ServiceAccountCredentials.from_json_keyfile_name(currentdir + "\Auth.json", scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name(currentdir + "/Auth.json", scope)
     
     client = gspread.authorize(creds)
     
@@ -171,6 +171,7 @@ def cellWrite(output, Sheet, Color, fmtOK, formatlisting):
     x = 0
     y = 0
     Result = []
+    Check = 0
     
     for a in range(len(output)):
         Result.append([a.strip() for a in output[a].split(',')]) #Turn singular list in a list with 3 elements on each line
