@@ -106,7 +106,11 @@ def DataScrape():
                 RawTickets = RawTickets.replace('|',',') #Adds commas where | is in thread titles, useful for csv files
                 RawTickets = RawTickets.replace('Resolved', '') #Filter out needless characters
                 RawTickets = RawTickets.replace('Turn time', '')
+                RawTickets = RawTickets.replace('Turn Time', '')
+                RawTickets = RawTickets.replace('turn Time', '')
                 RawTickets = RawTickets.replace('hrs', '')
+                RawTickets = RawTickets.replace('Hrs', '')
+                RawTickets = RawTickets.replace('HRS', '')
                 RawTickets = RawTickets.replace('hr', '')
                 ComaTickets = RawTickets.replace(' ', '')
                 output.append(ComaTickets + ',' + 'https://7cav.us/threads/' + titles.get('value') + ',' + Submitee[x])
